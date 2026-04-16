@@ -132,7 +132,26 @@ def resolve_image(agent: dict, name: str) -> None:
         print(f"Using {name} image: {agent['image']}")
     elif has_id:
         info = fetch_agent_info(agent["agentbeats_id"])
-        agent["image"] = info["docker_image"]
+        image = info.get("docker_image")
+        # Fallback: resolve image from amber_manifest_url if docker_image is null
+        if not image and info.get("amber_manifest_url"):
+            try:
+                import json as _json
+                resp = requests.get(info["amber_manifest_url"], timeout=30)
+                resp.raise_for_status()
+                # Handle JSON5 (strip comments and trailing commas)
+                text = re.sub(r'//.*', '', resp.text)
+                text = re.sub(r',(\s*[}\]])', r'\1', text)
+                manifest = _json.loads(text)
+                image = manifest.get("program", {}).get("image")
+                if image:
+                    print(f"Resolved {name} image from amber manifest: {image}")
+            except Exception as e:
+                print(f"Warning: Failed to resolve image from amber manifest: {e}")
+        if not image:
+            print(f"Error: No docker image found for {name} (docker_image is null and no amber manifest fallback)")
+            sys.exit(1)
+        agent["image"] = image
         print(f"Resolved {name} image: {agent['image']}")
     else:
         print(f"Error: {name} must have either 'image' or 'agentbeats_id' field")
