@@ -11,6 +11,10 @@
 #
 # For comparable leaderboard submissions, use the official full-set run.
 
+[green_agent]
+agentbeats_id = "019c1699-60ff-7832-9a4b-e829f8fe8f16"
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}" }
+
 [[participants]]
 agentbeats_id = "019d92a7-0af6-7372-8f52-34c0adb8ee19"
 name = "agent"
